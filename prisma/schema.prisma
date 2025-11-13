@@ -1,5 +1,14 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
 model Instance {
-  id        Int       @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   name      String
   messages  Message[]
   contacts  Contact[]  @relation("InstanceContacts")
@@ -8,20 +17,25 @@ model Instance {
 model Contact {
   id         Int        @id @default(autoincrement())
   name       String
-  instance   Instance?   @relation("InstanceContacts", fields: [instanceId], references: [id])
   instanceId Int?
-  chats      Chat[]      @relation("ContactChats")
+  instance   Instance?  @relation("InstanceContacts", fields: [instanceId], references: [id])
+  chats      Chat[]     @relation("ContactChats")
 }
 
 model Chat {
-  id        Int       @id @default(autoincrement())
-  content   String
-  contact   Contact?   @relation("ContactChats", fields: [contactId], references: [id])
-  contactId Int?
+  id         Int        @id @default(autoincrement())
+  content    String
+  contactId  Int?
+  contact    Contact?   @relation("ContactChats", fields: [contactId], references: [id])
+  messages   Message[]
 }
 
 model Message {
-  id         Int       @id @default(autoincrement())
+  id         Int        @id @default(autoincrement())
   text       String
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime   @default(now())
+  instanceId Int?
+  instance   Instance?  @relation(fields: [instanceId], references: [id])
+  chatId     Int?
+  chat       Chat?      @relation(fields: [chatId], references: [id])
 }
