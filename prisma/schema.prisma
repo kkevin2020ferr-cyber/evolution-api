@@ -54,6 +54,8 @@ enum DifyBotType {
   workflow
 }
 
+// ----------------- MODELS PRINCIPAIS -----------------
+
 model Instance {
   id                      String                   @id @default(cuid())
   name                    String                   @unique @db.VarChar(255)
@@ -71,6 +73,8 @@ model Instance {
   disconnectionAt         DateTime?                @db.Timestamp
   createdAt               DateTime?                @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
   updatedAt               DateTime?                @updatedAt @db.Timestamp
+
+  // Relações
   Chat                    Chat[]
   Contact                 Contact[]
   Message                 Message[]
@@ -107,7 +111,6 @@ model Instance {
   Pusher                  Pusher?
 }
 
-// Exemplo de ajuste em Session
 model Session {
   id        String   @id @default(cuid())
   sessionId String   @unique
@@ -117,7 +120,45 @@ model Session {
   instanceId String
 }
 
-// Ajuste principal: remove @unique de instanceId nos settings de bots para evitar conflito
+// ----------------- MODELS DE CHAT E MENSAGENS -----------------
+
+model Chat {
+  id         String   @id @default(cuid())
+  name       String
+  messages   Message[]
+  instanceId String
+  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+}
+
+model Contact {
+  id         String   @id @default(cuid())
+  jid        String   @unique
+  name       String?
+  instanceId String
+  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  body       String
+  fromMe     Boolean
+  chatId     String
+  instanceId String
+  Chat       Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+}
+
+// ----------------- MODELS DE BOT E SETTINGS -----------------
+
+model Typebot {
+  id         String         @id @default(cuid())
+  name       String
+  type       String
+  Instance   Instance       @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+  Settings   TypebotSetting[]
+}
+
 model TypebotSetting {
   id                String    @id @default(cuid())
   expire            Int?      @default(0) @db.Int
@@ -135,6 +176,13 @@ model TypebotSetting {
   Fallback          Typebot?  @relation(fields: [typebotIdFallback], references: [id], onDelete: SetNull)
   Instance          Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId        String
+}
+
+model OpenaiBot {
+  id         String        @id @default(cuid())
+  type       OpenaiBotType
+  Instance   Instance      @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
 }
 
 model OpenaiSetting {
@@ -160,5 +208,182 @@ model OpenaiSetting {
   instanceId       String
 }
 
-// O mesmo ajuste deve ser replicado para todos os Settings de bot: DifySetting, FlowiseSetting, EvoaiSetting, EvolutionBotSetting, N8nSetting
+// Dify
+model Dify {
+  id         String     @id @default(cuid())
+  type       DifyBotType
+  Instance   Instance   @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+  Settings   DifySetting[]
+}
 
+model DifySetting {
+  id              String    @id @default(cuid())
+  expire          Int?      @default(0) @db.Int
+  keywordFinish   String?   @db.VarChar(100)
+  delayMessage    Int?      @db.Int
+  unknownMessage  String?   @db.VarChar(100)
+  listeningFromMe Boolean?  @default(false)
+  stopBotFromMe   Boolean?  @default(false)
+  keepOpen        Boolean?  @default(false)
+  debounceTime    Int?      @db.Int
+  ignoreJids      Json?
+  splitMessages   Boolean?  @default(false)
+  timePerChar     Int?      @default(50) @db.Int
+  createdAt       DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
+  updatedAt       DateTime  @updatedAt @db.Timestamp
+  Fallback        Dify?     @relation(fields: [difyIdFallback], references: [id], onDelete: SetNull)
+  difyIdFallback  String?   @db.VarChar(100)
+  Instance        Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId      String
+}
+
+// Flowise
+model Flowise {
+  id         String         @id @default(cuid())
+  name       String
+  Instance   Instance       @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+  Settings   FlowiseSetting[]
+}
+
+model FlowiseSetting {
+  id                String    @id @default(cuid())
+  expire            Int?      @default(0) @db.Int
+  keywordFinish     String?   @db.VarChar(100)
+  delayMessage      Int?      @db.Int
+  unknownMessage    String?   @db.VarChar(100)
+  listeningFromMe   Boolean?  @default(false)
+  stopBotFromMe     Boolean?  @default(false)
+  keepOpen          Boolean?  @default(false)
+  debounceTime      Int?      @db.Int
+  ignoreJids        Json?
+  splitMessages     Boolean?  @default(false)
+  timePerChar       Int?      @default(50) @db.Int
+  createdAt         DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
+  updatedAt         DateTime  @updatedAt @db.Timestamp
+  Fallback          Flowise?  @relation(fields: [flowiseIdFallback], references: [id], onDelete: SetNull)
+  flowiseIdFallback String?   @db.VarChar(100)
+  Instance          Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId        String
+}
+
+// ----------------- Outros Settings de bots (Evoai, EvolutionBot, N8n) -----------------
+
+model Evoai {
+  id         String    @id @default(cuid())
+  name       String
+  Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+  Settings   EvoaiSetting[]
+}
+
+model EvoaiSetting {
+  id              String    @id @default(cuid())
+  expire          Int?      @default(0) @db.Int
+  keywordFinish   String?   @db.VarChar(100)
+  delayMessage    Int?      @db.Int
+  unknownMessage  String?   @db.VarChar(100)
+  listeningFromMe Boolean?  @default(false)
+  stopBotFromMe   Boolean?  @default(false)
+  keepOpen        Boolean?  @default(false)
+  debounceTime    Int?      @db.Int
+  ignoreJids      Json?
+  splitMessages   Boolean?  @default(false)
+  timePerChar     Int?      @default(50) @db.Int
+  createdAt       DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
+  updatedAt       DateTime  @updatedAt @db.Timestamp
+  Fallback        Evoai?    @relation(fields: [evoaiIdFallback], references: [id], onDelete: SetNull)
+  evoaiIdFallback String?   @db.VarChar(100)
+  Instance        Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId      String
+}
+
+model EvolutionBot {
+  id         String           @id @default(cuid())
+  name       String
+  Instance   Instance         @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+  Settings   EvolutionBotSetting[]
+}
+
+model EvolutionBotSetting {
+  id              String        @id @default(cuid())
+  expire          Int?          @default(0) @db.Int
+  keywordFinish   String?       @db.VarChar(100)
+  delayMessage    Int?          @db.Int
+  unknownMessage  String?       @db.VarChar(100)
+  listeningFromMe Boolean?      @default(false)
+  stopBotFromMe   Boolean?      @default(false)
+  keepOpen        Boolean?      @default(false)
+  debounceTime    Int?          @db.Int
+  ignoreJids      Json?
+  splitMessages   Boolean?      @default(false)
+  timePerChar     Int?          @default(50) @db.Int
+  createdAt       DateTime?     @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
+  updatedAt       DateTime      @updatedAt @db.Timestamp
+  Fallback        EvolutionBot? @relation(fields: [botIdFallback], references: [id], onDelete: SetNull)
+  botIdFallback   String?       @db.VarChar(100)
+  Instance        Instance      @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId      String
+}
+
+model N8n {
+  id         String    @id @default(cuid())
+  name       String
+  Instance   Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+  Settings   N8nSetting[]
+}
+
+model N8nSetting {
+  id              String    @id @default(cuid())
+  expire          Int?      @default(0) @db.Int
+  keywordFinish   String?   @db.VarChar(100)
+  delayMessage    Int?      @db.Int
+  unknownMessage  String?   @db.VarChar(100)
+  listeningFromMe Boolean?  @default(false)
+  stopBotFromMe   Boolean?  @default(false)
+  keepOpen        Boolean?  @default(false)
+  debounceTime    Int?      @db.Int
+  ignoreJids      Json?
+  splitMessages   Boolean?  @default(false)
+  timePerChar     Int?      @default(50) @db.Int
+  createdAt       DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
+  updatedAt       DateTime  @updatedAt @db.Timestamp
+  Fallback        N8n?      @relation(fields: [n8nIdFallback], references: [id], onDelete: SetNull)
+  n8nIdFallback   String?   @db.VarChar(100)
+  Instance        Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId      String
+}
+
+// ----------------- Outros Models auxiliares -----------------
+
+model Webhook {
+  id         String   @id @default(cuid())
+  url        String
+  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+}
+
+model Media {
+  id         String   @id @default(cuid())
+  url        String
+  type       String
+  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+}
+
+model Chatwoot {
+  id         String   @id @default(cuid())
+  accountId  String
+  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+}
+
+model Pusher {
+  id         String   @id @default(cuid())
+  key        String
+  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instanceId String
+}
