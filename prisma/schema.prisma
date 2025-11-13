@@ -1,72 +1,27 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
-
 model Instance {
-  id              Int       @id @default(autoincrement())
-  sessionName     String    @unique
-  status          String?
-  webhookUrl      String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  messages        Message[]
-  contacts        Contact[]
-}
-
-model Message {
-  id              Int       @id @default(autoincrement())
-  messageId       String    @unique
-  fromMe          Boolean
-  type            String
-  body            String?
-  timestamp       DateTime  @default(now())
-  chatId          String
-  contactId       Int?
-  contact         Contact?  @relation(fields: [contactId], references: [id])
-  instanceId      Int
-  instance        Instance  @relation(fields: [instanceId], references: [id])
+  id        Int       @id @default(autoincrement())
+  name      String
+  messages  Message[]
+  contacts  Contact[]  @relation("InstanceContacts")
 }
 
 model Contact {
-  id              Int       @id @default(autoincrement())
-  name            String?
-  phone           String    @unique
-  isBusiness      Boolean?  @default(false)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  messages        Message[]
-  chats           Chat[]
+  id         Int        @id @default(autoincrement())
+  name       String
+  instance   Instance?   @relation("InstanceContacts", fields: [instanceId], references: [id])
+  instanceId Int?
+  chats      Chat[]      @relation("ContactChats")
 }
 
 model Chat {
-  id              Int       @id @default(autoincrement())
-  chatId          String    @unique
-  name            String?
-  isGroup         Boolean   @default(false)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id        Int       @id @default(autoincrement())
+  content   String
+  contact   Contact?   @relation("ContactChats", fields: [contactId], references: [id])
+  contactId Int?
 }
 
-model IntegrationSession {
-  id              Int       @id @default(autoincrement())
-  name            String
-  type            String
-  data            String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-}
-
-model Webhook {
-  id              Int       @id @default(autoincrement())
-  name            String
-  url             String
-  events          String
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+model Message {
+  id         Int       @id @default(autoincrement())
+  text       String
+  createdAt  DateTime  @default(now())
 }
