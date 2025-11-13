@@ -13,103 +13,35 @@ enum InstanceConnectionStatus {
   connecting
 }
 
-enum DeviceMessage {
-  ios
-  android
-  web
-  unknown
-  desktop
-}
-
-enum SessionStatus {
-  opened
-  closed
-  paused
-}
-
-enum TriggerType {
-  all
-  keyword
-  none
-  advanced
-}
-
-enum TriggerOperator {
-  contains
-  equals
-  startsWith
-  endsWith
-  regex
-}
-
-enum OpenaiBotType {
-  assistant
-  chatCompletion
-}
-
-enum DifyBotType {
-  chatBot
-  textGenerator
-  agent
-  workflow
-}
-
 model Instance {
-  id                      String                   @id @default(cuid())
-  name                    String                   @unique @db.VarChar(255)
-  connectionStatus        InstanceConnectionStatus @default(open)
-  ownerJid                String?                  @db.VarChar(100)
-  profileName             String?                  @db.VarChar(100)
-  profilePicUrl           String?                  @db.VarChar(500)
-  integration             String?                  @db.VarChar(100)
-  number                  String?                  @db.VarChar(100)
-  businessId              String?                  @db.VarChar(100)
-  token                   String?                  @db.VarChar(255)
-  clientName              String?                  @db.VarChar(100)
-  disconnectionReasonCode Int?                     @db.Int
-  disconnectionObject     Json?                    @db.Json
-  disconnectionAt         DateTime?                @db.Timestamp
-  createdAt               DateTime?                @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
-  updatedAt               DateTime?                @updatedAt @db.Timestamp
+  id            String                   @id @default(cuid())
+  name          String                   @unique
+  connectionStatus InstanceConnectionStatus @default(open)
+  createdAt     DateTime                 @default(dbgenerated("CURRENT_TIMESTAMP"))
+  updatedAt     DateTime                 @updatedAt
 
   // Relações
-  Chat                    Chat[]
-  Contact                 Contact[]
-  Message                 Message[]
-  Webhook                 Webhook?
-  Chatwoot                Chatwoot?
-  Label                   Label[]
-  Proxy                   Proxy?
-  Setting                 Setting?
-  Rabbitmq                Rabbitmq?
-  Nats                    Nats?
-  Sqs                     Sqs?
-  Kafka                   Kafka?
-  Websocket               Websocket?
-  Typebot                 Typebot[]
-  Session                 Session?
-  MessageUpdate           MessageUpdate[]
-  TypebotSetting          TypebotSetting[]
-  Media                   Media[]
-  OpenaiCreds             OpenaiCreds[]
-  OpenaiBot               OpenaiBot[]
-  OpenaiSetting           OpenaiSetting[]
-  Template                Template[]
-  Dify                    Dify[]
-  DifySetting             DifySetting[]
-  IntegrationSession      IntegrationSession[]
-  EvolutionBot            EvolutionBot[]
-  EvolutionBotSetting     EvolutionBotSetting[]
-  Flowise                 Flowise[]
-  FlowiseSetting          FlowiseSetting[]
-  N8n                     N8n[]
-  N8nSetting              N8nSetting[]
-  Evoai                   Evoai[]
-  EvoaiSetting            EvoaiSetting[]
-  Pusher                  Pusher?
+  Chats         Chat[]
+  Contacts      Contact[]
+  Messages      Message[]
+  Webhook       Webhook?                 @relation(fields: [webhookId], references: [id])
+  webhookId     String?                  @unique
+  Chatwoot      Chatwoot?                @relation(fields: [chatwootId], references: [id])
+  chatwootId    String?                  @unique
+  Labels        Label[]
+  Proxy         Proxy?                   @relation(fields: [proxyId], references: [id])
+  proxyId       String?                  @unique
+  Setting       Setting?                 @relation(fields: [settingId], references: [id])
+  settingId     String?                  @unique
+  Typebots      Typebot[]
+  Sessions      Session?                 @relation(fields: [sessionId], references: [id])
+  sessionId     String?                  @unique
+  Media         Media[]
+  OpenaiBots    OpenaiBot[]
+  OpenaiSettings OpenaiSetting[]
+  OpenaiCreds   OpenaiCreds[]
 }
 
-// ---------- MODELS BÁSICOS DE EXEMPLO ----------
 model Chat {
   id         String   @id @default(cuid())
   instanceId String
@@ -133,28 +65,28 @@ model Webhook {
   id         String   @id @default(cuid())
   url        String
   instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  Instance   Instance @relation(fields: [instanceId], references: [id])
 }
 
 model Chatwoot {
   id         String   @id @default(cuid())
   token      String
   instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  Instance   Instance @relation(fields: [instanceId], references: [id])
 }
 
 model Label {
   id         String   @id @default(cuid())
   name       String
   instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  Instance   Instance @relation(fields: [instanceId], references: [id])
 }
 
 model Proxy {
   id         String   @id @default(cuid())
   url        String
   instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  Instance   Instance @relation(fields: [instanceId], references: [id])
 }
 
 model Setting {
@@ -162,235 +94,48 @@ model Setting {
   key        String
   value      String
   instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  Instance   Instance @relation(fields: [instanceId], references: [id])
 }
 
-model Rabbitmq {
-  id         String   @id @default(cuid())
-  config     Json
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model Nats {
-  id         String   @id @default(cuid())
-  config     Json
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model Sqs {
-  id         String   @id @default(cuid())
-  config     Json
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model Kafka {
-  id         String   @id @default(cuid())
-  config     Json
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model Websocket {
-  id         String   @id @default(cuid())
-  url        String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model MessageUpdate {
-  id         String   @id @default(cuid())
-  messageId  String
-  newBody    String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model OpenaiCreds {
-  id             String          @id @default(cuid())
-  apiKey         String
-  instanceId     String
-  Instance       Instance        @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  OpenaiSetting  OpenaiSetting?  @relation
-}
-
-model Template {
-  id         String   @id @default(cuid())
-  content    String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model IntegrationSession {
-  id         String   @id @default(cuid())
-  sessionId  String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-// ---------- SESSIONS E SETTINGS DE BOTS ----------
 model Session {
-  id        String   @id @default(cuid())
-  sessionId String   @unique
-  creds     String?  @db.Text
-  createdAt DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
-  Instance  Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  instanceId String
+  id         String   @id @default(cuid())
+  sessionId  String   @unique
+  creds      String?
+  instanceId String   @unique
+  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
-model TypebotSetting {
-  id                String    @id @default(cuid())
-  expire            Int?      @default(0) @db.Int
-  keywordFinish     String?   @db.VarChar(100)
-  delayMessage      Int?      @db.Int
-  unknownMessage    String?   @db.VarChar(100)
-  listeningFromMe   Boolean?  @default(false)
-  stopBotFromMe     Boolean?  @default(false)
-  keepOpen          Boolean?  @default(false)
-  debounceTime      Int?      @db.Int
-  typebotIdFallback String?   @db.VarChar(100)
-  ignoreJids        Json?
-  createdAt         DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
-  updatedAt         DateTime  @updatedAt @db.Timestamp
-
-  Fallback          Typebot?  @relation("TypebotFallback", fields: [typebotIdFallback], references: [id], onDelete: SetNull)
-  Instance          Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  instanceId        String
-  typebot           Typebot   @relation(fields: [typebotId], references: [id])
-  typebotId         String
+// ---------- OpenaiCreds e OpenaiSetting com relação bidirecional ----------
+model OpenaiCreds {
+  id               String        @id @default(cuid())
+  apiKey           String
+  instanceId       String
+  Instance         Instance      @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  OpenaiSetting    OpenaiSetting?
 }
 
 model OpenaiSetting {
-  id               String       @id @default(cuid())
-  expire           Int?         @default(0) @db.Int
-  keywordFinish    String?      @db.VarChar(100)
-  delayMessage     Int?         @db.Int
-  unknownMessage   String?      @db.VarChar(100)
-  listeningFromMe  Boolean?     @default(false)
-  stopBotFromMe    Boolean?     @default(false)
-  keepOpen         Boolean?     @default(false)
-  debounceTime     Int?         @db.Int
-  ignoreJids       Json?
-  splitMessages    Boolean?     @default(false)
-  timePerChar      Int?         @default(50) @db.Int
-  createdAt        DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
-  updatedAt        DateTime     @updatedAt @db.Timestamp
-
-  OpenaiCreds      OpenaiCreds? @relation(fields: [openaiCredsId], references: [id])
-  openaiCredsId    String
-  Fallback         OpenaiBot?   @relation("OpenaiFallback", fields: [openaiIdFallback], references: [id], onDelete: SetNull)
-  openaiIdFallback String?      @db.VarChar(100)
-  Instance         Instance     @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  id               String        @id @default(cuid())
   instanceId       String
+  Instance         Instance      @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  openaiCredsId    String?       @unique
+  OpenaiCreds      OpenaiCreds?  @relation(fields: [openaiCredsId], references: [id])
 }
 
-// ---------- MODELS DE BOT MÍNIMOS (EXEMPLO) ----------
+// ---------- Typebot e TypebotSetting com relação bidirecional ----------
 model Typebot {
-  id             String         @id @default(cuid())
-  name           String
+  id                String            @id @default(cuid())
+  name              String
+  instanceId        String
+  Instance          Instance          @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  TypebotSettings   TypebotSetting[]
+}
+
+model TypebotSetting {
+  id             String     @id @default(cuid())
+  typebotId      String
+  typebot        Typebot    @relation(fields: [typebotId], references: [id])
   instanceId     String
-  Instance       Instance       @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  TypebotSetting TypebotSetting[]  @relation("TypebotToSetting")
-  FallbackFrom   TypebotSetting[]  @relation("TypebotFallback")
+  Instance       Instance   @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
-model OpenaiBot {
-  id                     String        @id @default(cuid())
-  name                   String
-  instanceId             String
-  Instance               Instance      @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  OpenaiSettingFallback  OpenaiSetting[] @relation("OpenaiFallback")
-}
-
-// ---------------------- MODELS MÍNIMOS PARA FUNCIONAR ----------------------
-model Media {
-  id         String   @id @default(cuid())
-  url        String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model Dify {
-  id         String   @id @default(cuid())
-  name       String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model DifySetting {
-  id         String   @id @default(cuid())
-  key        String
-  value      String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model EvolutionBot {
-  id         String   @id @default(cuid())
-  name       String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model EvolutionBotSetting {
-  id         String   @id @default(cuid())
-  key        String
-  value      String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model Flowise {
-  id         String   @id @default(cuid())
-  name       String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model FlowiseSetting {
-  id         String   @id @default(cuid())
-  key        String
-  value      String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model N8n {
-  id         String   @id @default(cuid())
-  name       String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model N8nSetting {
-  id         String   @id @default(cuid())
-  key        String
-  value      String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model Evoai {
-  id         String   @id @default(cuid())
-  name       String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model EvoaiSetting {
-  id         String   @id @default(cuid())
-  key        String
-  value      String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
-
-model Pusher {
-  id         String   @id @default(cuid())
-  key        String
-  cluster    String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-}
