@@ -295,7 +295,6 @@ model OpenaiBot {
   instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 // ---------------------- MODELS MÍNIMOS PARA FUNCIONAR ----------------------
-
 model Media {
   id         String   @id @default(cuid())
   url        String
