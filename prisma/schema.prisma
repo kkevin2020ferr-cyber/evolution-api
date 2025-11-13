@@ -294,7 +294,8 @@ model OpenaiBot {
   name       String
   instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-// ---------------------- MODELS MÍNIMOS PARA FUNCIONAR ----------------------
+} // <-- FECHAMENTO ADICIONADO
+
 model Media {
   id         String   @id @default(cuid())
   url        String
@@ -384,6 +385,3 @@ model Pusher {
   instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
-
-
-
