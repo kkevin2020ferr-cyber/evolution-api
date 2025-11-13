@@ -132,14 +132,14 @@ model Message {
 model Webhook {
   id         String   @id @default(cuid())
   url        String
-  instanceId String   @unique
+  instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
 model Chatwoot {
   id         String   @id @default(cuid())
   token      String
-  instanceId String   @unique
+  instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
@@ -153,7 +153,7 @@ model Label {
 model Proxy {
   id         String   @id @default(cuid())
   url        String
-  instanceId String   @unique
+  instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
@@ -161,42 +161,42 @@ model Setting {
   id         String   @id @default(cuid())
   key        String
   value      String
-  instanceId String   @unique
+  instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
 model Rabbitmq {
   id         String   @id @default(cuid())
   config     Json
-  instanceId String   @unique
+  instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
 model Nats {
   id         String   @id @default(cuid())
   config     Json
-  instanceId String   @unique
+  instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
 model Sqs {
   id         String   @id @default(cuid())
   config     Json
-  instanceId String   @unique
+  instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
 model Kafka {
   id         String   @id @default(cuid())
   config     Json
-  instanceId String   @unique
+  instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
 model Websocket {
   id         String   @id @default(cuid())
   url        String
-  instanceId String   @unique
+  instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
 
@@ -209,10 +209,11 @@ model MessageUpdate {
 }
 
 model OpenaiCreds {
-  id         String   @id @default(cuid())
-  apiKey     String
-  instanceId String
-  Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  id             String          @id @default(cuid())
+  apiKey         String
+  instanceId     String
+  Instance       Instance        @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  OpenaiSetting  OpenaiSetting?  @relation
 }
 
 model Template {
@@ -236,7 +237,7 @@ model Session {
   creds     String?  @db.Text
   createdAt DateTime @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
   Instance  Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  instanceId String   @unique
+  instanceId String
 }
 
 model TypebotSetting {
@@ -253,9 +254,12 @@ model TypebotSetting {
   ignoreJids        Json?
   createdAt         DateTime? @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
   updatedAt         DateTime  @updatedAt @db.Timestamp
+
   Fallback          Typebot?  @relation("TypebotFallback", fields: [typebotIdFallback], references: [id], onDelete: SetNull)
   Instance          Instance  @relation(fields: [instanceId], references: [id], onDelete: Cascade)
   instanceId        String
+  typebot           Typebot   @relation(fields: [typebotId], references: [id])
+  typebotId         String
 }
 
 model OpenaiSetting {
@@ -273,6 +277,7 @@ model OpenaiSetting {
   timePerChar      Int?         @default(50) @db.Int
   createdAt        DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp
   updatedAt        DateTime     @updatedAt @db.Timestamp
+
   OpenaiCreds      OpenaiCreds? @relation(fields: [openaiCredsId], references: [id])
   openaiCredsId    String
   Fallback         OpenaiBot?   @relation("OpenaiFallback", fields: [openaiIdFallback], references: [id], onDelete: SetNull)
@@ -281,21 +286,22 @@ model OpenaiSetting {
   instanceId       String
 }
 
+// ---------- MODELS DE BOT MÍNIMOS (EXEMPLO) ----------
 model Typebot {
   id             String         @id @default(cuid())
   name           String
   instanceId     String
   Instance       Instance       @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  TypebotSetting TypebotSetting[]
-  FallbackFrom   TypebotSetting[] @relation("TypebotFallback")
+  TypebotSetting TypebotSetting[]  @relation("TypebotToSetting")
+  FallbackFrom   TypebotSetting[]  @relation("TypebotFallback")
 }
 
 model OpenaiBot {
-  id                    String         @id @default(cuid())
-  name                  String
-  instanceId            String
-  Instance              Instance       @relation(fields: [instanceId], references: [id], onDelete: Cascade)
-  OpenaiSettingFallback OpenaiSetting[] @relation("OpenaiFallback")
+  id                     String        @id @default(cuid())
+  name                   String
+  instanceId             String
+  Instance               Instance      @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  OpenaiSettingFallback  OpenaiSetting[] @relation("OpenaiFallback")
 }
 
 // ---------------------- MODELS MÍNIMOS PARA FUNCIONAR ----------------------
@@ -385,6 +391,6 @@ model Pusher {
   id         String   @id @default(cuid())
   key        String
   cluster    String
-  instanceId String   @unique
+  instanceId String
   Instance   Instance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 }
