@@ -7,8 +7,66 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Session {
-  id        Int      @id @default(autoincrement())
-  sessionId String   @unique
-  createdAt DateTime @default(now())
+model Instance {
+  id              Int       @id @default(autoincrement())
+  sessionName     String    @unique
+  status          String?
+  webhookUrl      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  messages        Message[]
+  contacts        Contact[]
+}
+
+model Message {
+  id              Int       @id @default(autoincrement())
+  messageId       String    @unique
+  fromMe          Boolean
+  type            String
+  body            String?
+  timestamp       DateTime  @default(now())
+  chatId          String
+  contactId       Int?
+  contact         Contact?  @relation(fields: [contactId], references: [id])
+  instanceId      Int
+  instance        Instance  @relation(fields: [instanceId], references: [id])
+}
+
+model Contact {
+  id              Int       @id @default(autoincrement())
+  name            String?
+  phone           String    @unique
+  isBusiness      Boolean?  @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  messages        Message[]
+  chats           Chat[]
+}
+
+model Chat {
+  id              Int       @id @default(autoincrement())
+  chatId          String    @unique
+  name            String?
+  isGroup         Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model IntegrationSession {
+  id              Int       @id @default(autoincrement())
+  name            String
+  type            String
+  data            String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Webhook {
+  id              Int       @id @default(autoincrement())
+  name            String
+  url             String
+  events          String
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
